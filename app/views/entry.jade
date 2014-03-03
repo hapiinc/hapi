@@ -1,0 +1,37 @@
+extends layout
+block head
+  link(rel='stylesheet', href='/stylesheets/cover.css')
+block body
+  .site-wrapper
+    .site-wrapper-inner
+      .cover-container
+        .masthead.clearfix
+          .inner
+            h3.masthead-brand
+              a(href='/')
+                img(src='/images/hapi.logo.png', height='50em', width='122.5em')
+            ul.nav.masthead-nav
+              li.active
+                a(href='/') Home
+              if user === false
+                li
+                  a(href='/signup') Sign Up
+                li
+                  a(href='/login') Sign In
+              else
+                li
+                  a(href='/profile') Profile
+                li
+                  a(href='/logout') Log Out
+        .inner.cover
+          h1.cover-heading Hypermedia.
+          p.lead
+            | It's how you got here.
+        .mastfoot
+          .inner
+            p
+              | © Hapi, Inc.
+              | "Outsource to Detroit" by
+              | <a href="http://www.flickr.com/photos/brunovz/"> Bruno_VZ </a>
+              | is licensed under
+              | <a href="http://creativecommons.org/licenses/by/2.0/"> CC BY 2.0. </a>

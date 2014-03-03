@@ -1,0 +1,52 @@
+extends layout
+block head
+  link(rel='stylesheet', href='/stylesheets/dashboard.css')
+block body
+  .navbar.navbar-inverse.navbar-fixed-top(role='navigation')
+    .container-fluid
+      .navbar-header
+        button.navbar-toggle(type='button', data-toggle='collapse', data-target='.navbar-collapse')
+          span.sr-only Toggle navigation
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        a.navbar-brand(href='/')
+          img(src='/images/hapi.logo.no.name.png', height='25em', width='25em')
+      .navbar-collapse.collapse
+        ul.nav.navbar-nav.navbar-right
+          li.active
+            a(href='/profile') Profile
+          li
+            a(href='#') Settings
+          li
+            a(href='/logout') Log Out
+  .container-fluid
+    .row
+      .col-sm-3.col-md-2.sidebar
+        ul.nav.nav-sidebar
+          li.active
+            a(href='#') Overview
+      .col-sm-9.col-sm-offset-3.col-md-10.col-md-offset-2.main
+        h1.page-header Profile
+        .row.placeholders
+          .col-xs-6.col-sm-3.placeholder
+            img.img-responsive(data-src='holder.js/200x200/auto/sky', alt='Generic placeholder thumbnail')
+            h4 Label
+            span.text-muted Sublabel
+        h2.sub-header Section title
+        .table-responsive
+          table.table.table-striped
+            thead
+              tr
+                th #
+                th Header
+                th Header
+                th Header
+                th Header
+            tbody
+              tr
+                td 1,001
+                td Lorem
+                td ipsum
+                td dolor
+                td sit
