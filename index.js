@@ -8,17 +8,16 @@
     /**
      * Module dependencies.
      */
-    var http = require('http'),
+    var fs = require('fs'),
+        http = require('http'),
         path = require('path'),
         flash = require('connect-flash'),
         express = require('express'),
+        doT = require('express-dot'),
         mongoose = require('mongoose'),
         passport = require('passport'),
-        passportGithub = require('passport-github'),
-        passportLocal = require('passport-local'),
-        xop = require('xop'),
-        models = require('./app/models'),
-        controllers = require('./app/controllers');
+        slop = require('slop'),
+        user = require('./app/models/user.js');
 
     /**
      * Process.argv will be an array.
@@ -43,7 +42,7 @@
      * - {boolean} true
      * - {boolean} false
      */
-    var options = xop().parse(process.argv),
+    var options = slop().parse(process.argv),
         port = options.get('port'),
         host = options.get('host'),
         databasePort = options.get('dbport'),
@@ -95,44 +94,8 @@
             /**
              * Create an Express Router.
              */
-            var app = express();
-
-            /**
-             * Configure Passport.
-             */
-            passport.serializeUser(function (user, done) {
-                done(null, user.id);
-            });
-            passport.deserializeUser(function (id, done) {
-                models.user.findOne({ _id: id }, function (err, user) {
-                    done(err, user);
-                });
-            });
-            passport.use(
-                new passportLocal.Strategy(
-                    {
-                        usernameField: 'email',
-                        passwordField: 'password'
-                    }, function (email, password, done) {
-                        models.user.isValidUserPassword(email, password, done);
-                    }
-                )
-            );
-            passport.use(
-                new passportGithub.Strategy(
-                    {
-                        clientID: '4e19f045b5dbe86fcc6e',
-                        clientSecret: 'a21ca6f13a8a4e4575bf4579a8c317663880f685',
-                        callbackURL: 'http://hapi.co/auth/github/callback'
-                    },
-                    function (accessToken, refreshToken, profile, done) {
-                        profile.authOrigin = 'github';
-                        models.user.findOrCreateOAuthUser(profile, function (err, user) {
-                            return done(err, user);
-                        });
-                    }
-                )
-            );
+            var app = express(),
+                controllersPath = path.join(__dirname, 'app/controllers/');
 
             /**
              * Create an HTTP Server with the Express Router as the Request Handler.
@@ -142,12 +105,12 @@
                 .createServer(
                     app
                         .set('views', path.join(__dirname, 'app/views'))
-                        .set('view engine', 'jade')
+                        .set('view engine', 'dot')
+                        .engine('html', doT.__express)
                         .use(express.favicon())
                         .use(express.logger('dev'))
                         .use(express.cookieParser())
                         .use(express.urlencoded())
-                        .use(express.json())
                         .use(express.session({ secret: 'keyboard cat' }))
                         .use(passport.initialize())
                         .use(passport.session())
@@ -156,17 +119,22 @@
                         .use(app.router)
                         .use(express.static(path.join(__dirname, 'app/statics')))
                         .use(express.errorHandler())
-                        .get('/', controllers.entry.get)
-                        .get('/login', controllers.login.get)
-                        .post('/login', controllers.login.post)
-                        .get('/signup', controllers.signup.get)
-                        .post('/signup', controllers.signup.post, controllers.signup.postTwo)
-                        .get('/auth/github', controllers.github.get)
-                        .get('/auth/github/callback', controllers.github.callback)
-                        .get('/profile', controllers.profile.get, controllers.profile.getTwo)
-                        .get('/logout', controllers.logout.get)
-                        .use(controllers.error.server)
-                        .use(controllers.error.client)
+                        .use(function (err, req, res, next) {
+                            res.status(err.status || 500);
+                            res.render('entry.html', {
+                                layout: false,
+                                title: 'Hapi',
+                                user: req.isAuthenticated()
+                            });
+                        })
+                        .use(function (req, res, next) {
+                            res.status(404);
+                            res.render('entry.html', {
+                                layout: false,
+                                title: 'Hapi',
+                                user: req.isAuthenticated()
+                            });
+                        })
                 )
                 .listen(port, host, function () {
                     console.log('------------------------------');
@@ -178,5 +146,13 @@
                     console.log('Port:' + port);
                     console.log('------------------------------');
                 });
+
+            fs.readdirSync(controllersPath).forEach(function (file) {
+                if (file.substr(-3) === '.js') {
+                    var controllerPath = controllersPath + file,
+                        route = require(controllerPath);
+                    route.controller(app);
+                }
+            });
         });
 })();

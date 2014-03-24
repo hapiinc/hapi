@@ -1,9 +1,9 @@
 module.exports.controller = function (app) {
     app
-        .get('/', function (req, res, next) {
-            res.render('entry.html', {
+        .get('/store', function (req, res, next) {
+            res.render('store.html', {
                 layout: false,
-                title: 'Hapi',
+                title: 'Store',
                 user: req.isAuthenticated()
             });
         });

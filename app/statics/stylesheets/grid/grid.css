@@ -1,0 +1,106 @@
+/**
+ * How It Works
+ *
+ * .section
+ * Splits up the page horizontally.
+ * You'll need a few of these to break up the content, and you can use them in your main wrapper, or within other divs.
+ *
+ * .col
+ * Divides the section into columns.
+ * .col:first-child {
+ *     margin-left:0;
+ * }
+ * Means you don't need to use class="last" anywhere. It works in all browsers since IE6.
+ *
+ * .group
+ * Solves floating problems, by forcing the section to self clear its children (aka the clearfix hack).
+ * This is good in Firefox 3.5+, Safari 4+, Chrome, Opera 9+ and IE 6+.
+ *
+ * .span_x_of_y
+ * Specifies the width of the column. Using percentages means it's 100% fluid.
+ *
+ * @media queries
+ * As soon as the screen size gets less than 768 pixels (48em) the columns stack and the margins disappear.
+ */
+
+.section {
+    clear: both;
+    padding: 0;
+    margin: 0;
+}
+
+.col {
+    display: block;
+    float: left;
+    margin: 0;
+}
+
+.col:first-child {
+    margin-left: 0;
+}
+
+.group:before,
+.group:after {
+    content: "";
+    display: table;
+}
+
+.group:after {
+    clear: both;
+}
+
+.group {
+    zoom: 1;
+}
+
+/**
+ * Two-column Grid System
+ */
+
+.span_2_of_2 {
+    width: 100%;
+}
+
+.span_1_of_2 {
+    width: 50%;
+}
+
+@media only screen and (max-width: 48em) {
+    .span_2_of_2 {
+        width: 100%;
+    }
+
+    .span_1_of_2 {
+        width: 100%;
+    }
+}
+
+/**
+ * Three-column Grid System
+ */
+
+.span_3_of_3 {
+    width: 100%;
+}
+
+.span_2_of_3 {
+    width: 66.6%;
+}
+
+.span_1_of_3 {
+    width: 33.3%;
+}
+
+@media only screen and (max-width: 48em) {
+    .span_3_of_3 {
+        width: 100%;
+    }
+
+    .span_2_of_3 {
+        width: 100%;
+    }
+
+    .span_1_of_3 {
+        width: 100%;
+    }
+}

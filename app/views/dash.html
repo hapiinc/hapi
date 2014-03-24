@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content=""/>
+    <meta name="keywords" content=""/>
+    <meta name="author" content=""/>
+    <title>{{=it.title}}</title>
+    <link rel="stylesheet" href="stylesheets/grid/grid.css"/>
+    <link rel="stylesheet" href="stylesheets/views/dash.css"/>
+    <link rel="stylesheet" href="stylesheets/fonts/bebasneue.css"/>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script>
+        if (!window.jQuery) {
+            document.write('<script src="javascripts/jquery-2.1.0.min.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+<!-- Temporary -->
+<div id="modal-create-hapi" class="modal modal-effect-justme">
+    <div class="modal-inner">
+        <div class="section group modal-top">
+            <div class="col span_1_of_2 modal-top-left">
+                <p>Modal Header</p>
+            </div>
+            <div class="col span_1_of_2 modal-top-right">
+                <button class="modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Temporary -->
+<div class="section group dash-top">
+    <div class="col span_1_of_2 dash-top-left">
+        <div id="slideout">
+            <div id="dash-logo"></div>
+
+            <div id="slideout-inner-menu">
+                <div class="slideout-inner-menu-item">
+                    <a class="slideout-inner-menu-item-inner" href="#">Data</a>
+                </div>
+                <div class="slideout-inner-menu-item">
+                    <a class="slideout-inner-menu-item-inner" href="#">Store</a>
+                </div>
+                <div class="slideout-inner-menu-item">
+                    <a class="slideout-inner-menu-item-inner" href="#">Settings</a>
+                </div>
+                <div class="slideout-inner-menu-item">
+                    <a class="slideout-inner-menu-item-inner" href="#">Docs</a>
+                </div>
+                <div class="slideout-inner-menu-item">
+                    <a class="slideout-inner-menu-item-inner" href="#">Support</a>
+                </div>
+                <div class="slideout-inner-menu-item">
+                    <a class="slideout-inner-menu-item-inner" href="#">Logout</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-top-left-inner">
+            <p class="dash-top-left-inner-title">Y U No Hapi?</p>
+
+            <p class="dash-top-left-inner-subtitle">SSH - 22</p>
+
+            <p class="dash-top-left-inner-subtitle">HTTP - 8080</p>
+
+            <a href="#">
+                <button class="dash-button">Turn Off</button>
+            </a>
+            <a href="#">
+                <button class="dash-button">Kill</button>
+            </a>
+        </div>
+    </div>
+
+    <div class="col span_1_of_2 dash-top-right">
+        <div class="dash-top-right-inner">
+            <div class="dash-top-right-inner-cell-alt">
+                <div class="dash-top-right-inner-cell-inner">
+                    <a class="modal-trigger" data-modal="modal-create-hapi" href="#">
+                        Create Hapi
+                    </a>
+                </div>
+            </div>
+            <div class="dash-top-right-inner-cell">
+                <div class="dash-top-right-inner-cell-inner">
+                    <a href="#">
+                        Placeholder
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Temporary -->
+<div class="modal-overlay"></div>
+<script src="javascripts/modal.js"></script>
+<!-- Temporary -->
+</body>
+</html>
