@@ -1,8 +1,13 @@
 {
-    "name": "hapiplace",
-    "description": "Go to your Hapi Place.",
-    "author": "Tony Tahmouch tony@hapi.co",
-    "license": "GPL-2.0+",
+    "name": "place",
+    "description": "Hapi Place is the web client that people interface with for Hapi container management.",
+    "author": "Tony Tahmouch <tony@hapi.co>",
+    "licenses": [
+        {
+            "type": "GPL-2.0+",
+            "url": "https://github.com/ttahmouch/place/blob/master/LICENSE.md"
+        }
+    ],
     "version": "0.0.1",
     "main": "index.js",
     "scripts": {
@@ -10,6 +15,10 @@
     },
     "engines": {
         "node": "0.10.x"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ttahmouch/place.git"
     },
     "dependencies": {
         "connect-flash": "0.1.1",
@@ -21,5 +30,13 @@
         "passport-github": "0.1.5",
         "passport-local": "0.1.6",
         "slop": "0.0.1"
+    },
+    "keywords": [
+        "hapi",
+        "place",
+        "website"
+    ],
+    "bugs": {
+        "url": "https://github.com/ttahmouch/place/issues"
     }
 }
