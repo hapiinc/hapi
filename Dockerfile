@@ -1,10 +1,10 @@
 # Docker 0.7.6
-# Image hapi/face
+# Image hapi/place
 
 FROM hapi/node
 MAINTAINER Tony J. Tahmouch <tony@hapi.co>
 
-# Prepare Face
+# Prepare Place
 ADD ./ /home/git/app/
 RUN rm -rfv /home/git/app/.git/ && \
     npm install forever -g && \
