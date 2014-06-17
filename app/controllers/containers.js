@@ -1,137 +1,156 @@
 module.exports.controller = function (app) {
-    var fs = require('fs'),
-        https = require('https'),
-        key = fs.readFileSync('ssl/key.pem', 'utf8'),
-        cert = fs.readFileSync('ssl/cert.pem', 'utf8'),
-        user = require('../models/user.js');
+    /**
+     * Module Dependencies.
+     */
+    var user = require('../models/user.js'),
+        docker = require('../docker.js');
 
-    function startContainer(containerId, sshPort, httpPort, callback) {
-        var request = https.request(
-            {
-                host: 'hapi.co',
-                port: '4243',
-                method: 'POST',
-                path: '/containers/' + containerId + '/start',
-                headers: {'Content-Type': 'application/json'},
-                key: key,
-                cert: cert,
-                rejectUnauthorized: false,
-                agent: false
+    /**
+     * Docker Configurations for Hapi Container Creation and Initialization.
+     */
+    var containerConfig = {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "Memory": 0,
+            "MemorySwap": 0,
+            "CpuShares": 0,
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "PortSpecs": null,
+            "ExposedPorts": {
+                "22/tcp": {},
+                "80/tcp": {},
+                "8080/tcp": {}
             },
-            callback
-        )
-            .on('error', function (e) {
-                console.error(e);
-            });
-        request.write(JSON.stringify({
-            'PortBindings': {
-                '22/tcp': [
-                    { 'HostPort': sshPort.toString() }
-                ],
-                '8080/tcp': [
-                    { 'HostPort': httpPort.toString() }
-                ]
-            }
-        }));
-        request.end();
-    }
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "HOME=/root",
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/usr/bin/supervisord"
+            ],
+            "Image": "paasta/hapi",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "NetworkDisabled": false,
+            "OnBuild": null
+        },
+        hostConfig = {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LxcConf": [],
+            "Privileged": false,
+            "PortBindings": {
+                "22/tcp": null,
+                "80/tcp": null,
+                "8080/tcp": null
+            },
+            "Links": null,
+            "PublishAllPorts": false,
+            "Dns": null,
+            "DnsSearch": null,
+            "VolumesFrom": null
+        },
+        socket = '/var/docker.sock';
+    /**
+     * Valid Container Name Regular Expression.
+     * Example: www.hapi.co, bitcoin.hapi.co
+     */
+    var validContainerName = /^[a-zA-Z0-9](?:([a-zA-Z0-9\-])*[a-zA-Z0-9])?\.hapi\.co$/;
 
     app
-        .post('/containers/hapi', function (req, res, next) {
-            var email = req.user.email,
-                hostName = req.body.name,
-                sshKey = req.body.sshkey,
-                hapiResponse = res;
-            if (req.isAuthenticated()) {
-                var request = https.request(
-                    {
-                        host: 'hapi.co',
-                        port: '4243',
-                        method: 'POST',
-                        path: '/containers/create',
-                        headers: { 'Content-Type': 'application/json' },
-                        key: key,
-                        cert: cert,
-                        rejectUnauthorized: false,
-                        agent: false
-                    },
-                    function (res) {
-                        var response = '';
-                        res
-                            .on('data', function (data) {
-                                response += data;
-                            })
-                            .on('end', function () {
-                                if (res.statusCode === 201) {
-                                    var container = JSON.parse(response),
-                                        containerId = container.Id;
+        .post('/containers', function (req, res, next) {
+            var redirect = true;
+            if (req.isAuthenticated() && !!req.body && typeof req.body === 'object') {
+                var action = req.body.action,
+                    hapi = req.body.hapi,
+                    email = req.user.email;
 
-                                    user.getLargestHapiPort(function (err, users) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            var currentPort = 49152;
-                                            for (var u in users) {
-                                                u = users[u];
-                                                if (u.hapis.length > 0) {
-                                                    var hapis = u.hapis;
-                                                    for (var hapi in hapis) {
-                                                        hapi = hapis[hapi];
-                                                        if (hapi.sshPort > currentPort) {
-                                                            currentPort = hapi.sshPort;
-                                                        }
-                                                        if (hapi.httpPort > currentPort) {
-                                                            currentPort = hapi.httpPort;
-                                                        }
-                                                    }
-                                                }
+                if (!!hapi && typeof hapi === 'string') {
+                    switch (action) {
+                        case 'create':
+                            if (validContainerName.test(hapi)) {
+                                redirect = false;
+                                docker.createContainer(socket, containerConfig, hapi, function (container) {
+                                    if (!!container) {
+                                        var id = container.Id;
+                                        user.addHapi({ email: email }, { 'id': id, 'name': hapi },
+                                            function (err, hapi) {
+                                                res.redirect('/dash');
+                                                console.log(err);
+                                                console.log(hapi);
                                             }
-
-                                            var sshPort = currentPort + 1,
-                                                httpPort = currentPort + 2;
-
-                                            startContainer(containerId, sshPort, httpPort, function callback(res) {
-                                                    if (res.statusCode === 204) {
-                                                        user.addHapiForUser(email, {
-                                                            'containerId': containerId,
-                                                            'hostName': hostName,
-                                                            'sshKey': sshKey,
-                                                            'sshPort': sshPort,
-                                                            'httpPort': httpPort
-                                                        });
-                                                        hapiResponse.redirect('profile');
-                                                    } else {
-                                                        sshPort += 1;
-                                                        httpPort += 1;
-                                                        startContainer(containerId, sshPort, httpPort, callback);
-                                                    }
-                                                }
-                                            );
-                                        }
-                                    });
+                                        );
+                                        docker.startContainer(socket, id, hostConfig, function (started) {
+                                            console.log(started);
+                                        });
+                                    } else {
+                                        res.redirect('/dash');
+                                    }
+                                    console.log(container);
+                                });
+                            }
+                            break;
+                        case 'manage':
+                            break;
+                        case 'start':
+                            docker.startContainer(socket, hapi, hostConfig, function (started) {
+                                console.log(started);
+                            });
+                            break;
+                        case 'code':
+                            redirect = false;
+                            user.getHapiById({ email: email }, hapi, function (err, hapi) {
+                                if (!!hapi) {
+                                    res.redirect('http://ide.' + hapi.name);
+                                } else {
+                                    res.redirect('/dash');
                                 }
                             });
+                            break;
+                        case 'browse':
+//                            redirect = false;
+                            break;
+                        case 'stop':
+                            docker.stopContainer(socket, hapi, function (stopped) {
+                                console.log(stopped);
+                            });
+                            break;
+                        case 'restart':
+                            docker.restartContainer(socket, hapi, function (restarted) {
+                                console.log(restarted);
+                            });
+                            break;
+                        case 'remove':
+                            redirect = false;
+                            docker.removeContainer(socket, hapi, function (removed) {
+                                if (!!removed) {
+                                    user.removeHapi({ email: email }, { 'id': hapi }, function (err, hapi) {
+                                        res.redirect('/dash');
+                                        console.log(err);
+                                        console.log(hapi);
+                                    });
+                                } else {
+                                    res.redirect('/dash');
+                                }
+                                console.log(removed);
+                            });
+                            break;
+                        default:
+                            break;
                     }
-                )
-                    .on('error', function (e) {
-                        console.error(e);
-                    });
-                request.write(JSON.stringify({
-                    'ExposedPorts': {
-                        '22/tcp': {},
-                        '8080/tcp': {}
-                    },
-                    'Env': [
-                        'SSHKEY=' + sshKey,
-                        'HOME=/',
-                        'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-                    ],
-                    'Cmd': [ '/bin/sh', '-c', '"/opt/bin/entry"' ],
-                    'Image': 'hapi/hapi'
-                }));
-                request.end();
-            } else {
-                res.redirect('/');
+                    console.log(action);
+                    console.log(hapi);
+                }
+            }
+            if (redirect) {
+                res.redirect('/dash');
             }
         });
 };
