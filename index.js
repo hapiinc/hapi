@@ -16,8 +16,7 @@
         doT = require('express-dot'),
         mongoose = require('mongoose'),
         passport = require('passport'),
-        slop = require('slop'),
-        user = require('./app/models/user.js');
+        slop = require('slop');
 
     /**
      * Process.argv will be an array.
@@ -32,6 +31,7 @@
      * - optional database port to connect to
      * - optional database host to connect to
      * - optional HTTP router library
+     * - optional environment to distinguish between development and production
      *
      * Options.get() values may yield:
      * - {undefined}
@@ -48,24 +48,27 @@
         databasePort = options.get('dbport'),
         databaseHost = options.get('dbhost'),
         lib = options.get('lib'),
+        environment = options.get('environment'),
         debug = options.has('debug');
 
     /**
-     * Default the Port and Host values if they're not defined.
+     * Default the Port, Host, and Environment values if they're not defined.
      */
     port = (typeof port === 'string' && Number(port) >= 0) ? port : '8080';
     host = (typeof host === 'string') ? host : '0.0.0.0';
     databasePort = (typeof databasePort === 'string' && Number(databasePort) >= 0) ? databasePort : '27017';
     databaseHost = (typeof databaseHost === 'string') ? databaseHost : '127.0.0.1';
+    environment = (typeof environment === 'string') ? environment : 'development';
 
     if (debug) {
         console.log('------------------------------');
         console.log('Incoming Option Values.');
-        console.log('Port: ' + JSON.stringify(port));
-        console.log('Host: ' + JSON.stringify(host));
-        console.log('Database Port: ' + JSON.stringify(databasePort));
-        console.log('Database Host: ' + JSON.stringify(databaseHost));
-        console.log('Lib: ' + JSON.stringify(lib));
+        console.log('Port: ' + port);
+        console.log('Host: ' + host);
+        console.log('Database Port: ' + databasePort);
+        console.log('Database Host: ' + databaseHost);
+        console.log('Lib: ' + lib);
+        console.log('Environment', environment);
         console.log('------------------------------');
     }
 
@@ -85,74 +88,74 @@
             console.log('Failed to connect to database.');
             console.log('Host:' + databaseHost);
             console.log('Port:' + databasePort);
-            console.log('Server NOT running.');
+            console.log('------------------------------');
+        });
+
+    /**
+     * Create an Express Router.
+     */
+    var app = express(),
+        controllersPath = path.join(__dirname, 'app/controllers/');
+
+    /**
+     * Create an HTTP Server with the Express Router as the Request Handler.
+     * Listen on port 8080.
+     */
+    http
+        .createServer(
+            app
+                .set('environment', environment)
+                .set('views', path.join(__dirname, 'app/views'))
+                .set('view engine', 'dot')
+                .engine('html', doT.__express)
+                .use(express.favicon())
+                .use(express.logger('dev'))
+                .use(express.cookieParser())
+                .use(express.urlencoded())
+                .use(express.session({ secret: 'keyboard cat' }))
+                .use(passport.initialize())
+                .use(passport.session())
+                .use(express.methodOverride())
+                .use(flash())
+                .use(app.router)
+                .use(express.static(path.join(__dirname, 'app/statics')))
+                .use(express.errorHandler())
+                .use(function (err, req, res, next) {
+                    res.status(err.status || 500);
+                    res.render('home.html', {
+                        layout: false,
+                        title: 'Hapi',
+                        author: 'Tony Tahmouch tony@hapi.co',
+                        copyright: 'Copyright © 2014 Hapi, Inc.',
+                        description: 'Hapi Homepage.',
+                        keywords: 'hypermedia, api, rest, restful, javascript, node, node.js, web, docker'
+                    });
+                })
+                .use(function (req, res, next) {
+                    res.status(404);
+                    res.render('home.html', {
+                        layout: false,
+                        title: 'Hapi',
+                        author: 'Tony Tahmouch tony@hapi.co',
+                        copyright: 'Copyright © 2014 Hapi, Inc.',
+                        description: 'Hapi Homepage.',
+                        keywords: 'hypermedia, api, rest, restful, javascript, node, node.js, web, docker'
+                    });
+                })
+        )
+        .listen(port, host, function () {
+            console.log('------------------------------');
+            console.log('Server running.');
             console.log('Host:' + host);
             console.log('Port:' + port);
             console.log('------------------------------');
-        })
-        .once('open', function () {
-            /**
-             * Create an Express Router.
-             */
-            var app = express(),
-                controllersPath = path.join(__dirname, 'app/controllers/');
-
-            /**
-             * Create an HTTP Server with the Express Router as the Request Handler.
-             * Listen on port 8080.
-             */
-            http
-                .createServer(
-                    app
-                        .set('views', path.join(__dirname, 'app/views'))
-                        .set('view engine', 'dot')
-                        .engine('html', doT.__express)
-                        .use(express.favicon())
-                        .use(express.logger('dev'))
-                        .use(express.cookieParser())
-                        .use(express.urlencoded())
-                        .use(express.session({ secret: 'keyboard cat' }))
-                        .use(passport.initialize())
-                        .use(passport.session())
-                        .use(express.methodOverride())
-                        .use(flash())
-                        .use(app.router)
-                        .use(express.static(path.join(__dirname, 'app/statics')))
-                        .use(express.errorHandler())
-                        .use(function (err, req, res, next) {
-                            res.status(err.status || 500);
-                            res.render('entry.html', {
-                                layout: false,
-                                title: 'Hapi',
-                                user: req.isAuthenticated()
-                            });
-                        })
-                        .use(function (req, res, next) {
-                            res.status(404);
-                            res.render('entry.html', {
-                                layout: false,
-                                title: 'Hapi',
-                                user: req.isAuthenticated()
-                            });
-                        })
-                )
-                .listen(port, host, function () {
-                    console.log('------------------------------');
-                    console.log('Database connected.');
-                    console.log('Host:' + databaseHost);
-                    console.log('Port:' + databasePort);
-                    console.log('Server running.');
-                    console.log('Host:' + host);
-                    console.log('Port:' + port);
-                    console.log('------------------------------');
-                });
-
-            fs.readdirSync(controllersPath).forEach(function (file) {
-                if (file.substr(-3) === '.js') {
-                    var controllerPath = controllersPath + file,
-                        route = require(controllerPath);
-                    route.controller(app);
-                }
-            });
         });
+
+    fs.readdirSync(controllersPath).forEach(function (file) {
+        if (file.substr(-3) === '.js') {
+            var controllerPath = controllersPath + file,
+                route = require(controllerPath);
+            route.controller(app);
+        }
+    });
 })();
