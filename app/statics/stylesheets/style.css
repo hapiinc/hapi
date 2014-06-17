@@ -1,0 +1,62 @@
+@import url("lato-hai-webfont.css");
+@import url("lato-lig-webfont.css");
+@import url("lato-bol-webfont.css");
+
+/*
+ * Due to browser support, this recommendation is only for projects that support IE8 and up.
+ * (Full browser compat at MDN) Firefox still needs the -moz- prefix, and <= iOS4, Android <= 2.3 need the -webkit-, but
+ * everyone else uses the unprefixed. You can find more info about a box-sizing polyfill for IE6 & 7 at
+ * html5please.com/#box-sizing (which was developed with * { box-sizing: border-box!).
+ *
+ * @see http://www.paulirish.com/2012/box-sizing-border-box-ftw/
+ */
+*, *:after, *:before {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/**
+ * General.
+ */
+body, html {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    font-family: 'latolight', Calibri, Arial, sans-serif;
+    color: #ffe8e7;
+    background: #3B8686;
+}
+
+.main {
+    height: 100%;
+    width: 75%;
+    margin: auto;
+    display: table;
+}
+
+.content {
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.logo {
+    width: 7em;
+    height: 7em;
+    margin: 1em auto;
+    background: url("../images/hapi.logo.svg");
+    background-size: 7em 7em;
+}
+
+@media only screen and (max-width: 48em) {
+    .logo {
+        width: 5em;
+        height: 5em;
+        background-size: 5em 5em;
+    }
+}
