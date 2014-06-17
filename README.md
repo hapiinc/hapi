@@ -6,8 +6,13 @@ Hapi Place is the web client that people interface with for Hapi container manag
 ## Installation
 
     cd paasta
+    make build n=base
+    make build n=monger
     make build n=place
-    make run n=place r="-d -p 22 -p 8080 -e SSHKEY='KEY'"
+    # Production
+    make run n=place r="-d -v /var/run/docker.sock:/var/docker.sock -v /data/db:/data/db --name=www.hapi.co"
+    # Development
+    make run n=place r="-d -v /var/run/docker.sock:/var/docker.sock --name=dev.hapi.co"
 
 ## Usage
 
